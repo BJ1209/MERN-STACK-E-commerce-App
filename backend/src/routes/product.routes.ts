@@ -6,17 +6,18 @@ import {
   getProductById,
   updateProductById,
 } from '../controllers/product.controller';
+import AsyncErrorHandler from '../utils/AsyncErrorHandler';
 
 const router: Router = Router();
 
-router.get('/', getAllProducts);
+router.get('/', AsyncErrorHandler(getAllProducts));
 
-router.post('/new', createNewProduct);
+router.post('/new', AsyncErrorHandler(createNewProduct));
 
-router.get('/:productId', getProductById);
+router.get('/:productId', AsyncErrorHandler(getProductById));
 
-router.put('/:productId', updateProductById);
+router.put('/:productId', AsyncErrorHandler(updateProductById));
 
-router.delete('/:productId', deleteProductById);
+router.delete('/:productId', AsyncErrorHandler(deleteProductById));
 
 export default router;
