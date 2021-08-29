@@ -4,6 +4,7 @@ import cors from 'cors';
 import productRoutes from './routes/product.routes';
 import morgan from 'morgan';
 import { responseError } from './interfaces';
+import userRoutes from './routes/user.routes';
 require('dotenv/config');
 
 const app: Application = express();
@@ -16,6 +17,7 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/users', userRoutes);
 
 // catch all routes
 app.use((req: Request, res: Response, next: NextFunction) => {
