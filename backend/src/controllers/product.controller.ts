@@ -1,8 +1,44 @@
 import { NextFunction, Request, Response } from 'express';
 import Product from '../model/product.model';
+import pagination from '../utils/pagination';
 
 export const getAllProducts = async (req: Request, res: Response, next: NextFunction) => {
-  const products = await Product.find({}).select({ __v: 0 });
+  const { q, page, category, limit, plte, pgte } = req.query;
+  const resPerPage = 4;
+
+  // keyword search
+  let products = q
+    ? await Product.find({ name: { $regex: `${q}`, $options: 'i' } }).select({ __v: 0 })
+    : await Product.find({}).select({ __v: 0 });
+
+  // category
+  if (category) {
+    products = products.filter((product) => {
+      return product.category === category;
+    });
+  }
+
+  // price less than
+  if (plte) {
+    products = products.filter((product) => {
+      return product.price <= Number(plte);
+    });
+  }
+
+  // price greater than
+  if (pgte) {
+    products = products.filter((product) => {
+      return product.price >= Number(pgte);
+    });
+  }
+  // limit for the products
+  if (limit) {
+    products = products.slice(0, Number(limit));
+  }
+
+  if (page) {
+    products = pagination(resPerPage, Number(page), products);
+  }
 
   if (products.length < 1) {
     return res.status(200).json({ success: true, message: 'No Products Found' });
@@ -12,21 +48,46 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
     success: true,
     message: 'All Products',
     productCount: products.length,
-    products: products.map((product) => {
-      return {
-        ...product,
-        request: {
-          url: `http://localhost:4000/api/v1/products/${product.id}`,
-          request: 'GET',
-          message: 'Get single product detail',
-        },
-      };
-    }),
+    products: products.map(
+      ({
+        id,
+        name,
+        price,
+        description,
+        ratings,
+        images,
+        category,
+        seller,
+        stock,
+        numOfReviews,
+        reviews,
+        createdAt,
+      }) => {
+        return {
+          id,
+          name,
+          price,
+          description,
+          ratings,
+          images,
+          category,
+          seller,
+          stock,
+          numOfReviews,
+          reviews,
+          createdAt,
+          request: {
+            url: `http://localhost:4000/api/v1/products/${id}`,
+            request: 'GET',
+            message: 'Get single product detail',
+          },
+        };
+      }
+    ),
   };
 
   res.status(200).json(responseObject);
 };
-
 export const createNewProduct = async (req: Request, res: Response, next: NextFunction) => {
   const { name, price, description, category, seller, stock } = req.body;
 
@@ -42,7 +103,6 @@ export const createNewProduct = async (req: Request, res: Response, next: NextFu
   await newProduct.save();
   res.status(201).json({ success: true, message: 'Product created' });
 };
-
 export const getProductById = async (req: Request, res: Response, next: NextFunction) => {
   const { productId } = req.params;
 

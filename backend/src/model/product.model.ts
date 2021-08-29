@@ -1,4 +1,4 @@
-import { model, Schema } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 
 interface ProductSchema {
   name: string;
@@ -103,6 +103,8 @@ const productSchema = new Schema({
     default: Date.now(),
   },
 });
+
+export type productType = ProductSchema & Document<any, any, ProductSchema>;
 
 const productModel = model<ProductSchema>('product', productSchema);
 
