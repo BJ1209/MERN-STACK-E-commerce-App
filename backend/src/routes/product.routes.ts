@@ -6,13 +6,14 @@ import {
   getProductById,
   updateProductById,
 } from '../controllers/product.controller';
+import checkAuth from '../middlewares/checkAuth';
 import AsyncErrorHandler from '../utils/AsyncErrorHandler';
 
 const router: Router = Router();
 
 router.get('/', AsyncErrorHandler(getAllProducts));
 
-router.post('/new', AsyncErrorHandler(createNewProduct));
+router.post('/new', AsyncErrorHandler(checkAuth), AsyncErrorHandler(createNewProduct));
 
 router.get('/:productId', AsyncErrorHandler(getProductById));
 

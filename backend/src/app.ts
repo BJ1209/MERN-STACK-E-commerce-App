@@ -5,6 +5,7 @@ import productRoutes from './routes/product.routes';
 import morgan from 'morgan';
 import { responseError } from './interfaces';
 import userRoutes from './routes/user.routes';
+import cookieParser from 'cookie-parser';
 require('dotenv/config');
 
 const app: Application = express();
@@ -13,6 +14,7 @@ const PORT = process.env.PORT;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 app.use(morgan('dev'));
 
 // Routes

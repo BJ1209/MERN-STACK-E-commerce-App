@@ -1,8 +1,9 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
+require('dotenv/config');
 
-interface User {
+export interface User {
   name: string;
   email: string;
   password: string;
@@ -11,6 +12,7 @@ interface User {
   createdAt: Date;
   resetPasswordToken: string;
   resetPasswordExpire: Date;
+  isValidPassword(password: string): boolean;
 }
 
 const UserSchema = new Schema<User>({
@@ -48,7 +50,7 @@ const UserSchema = new Schema<User>({
   resetPasswordExpire: Date,
 });
 
-UserSchema.pre('save', async function (next) {
+UserSchema.pre<User>('save', async function (next) {
   try {
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
     const hashedPassword = await bcrypt.hash(this.password, salt);
@@ -59,4 +61,11 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-export default model<User>('user', UserSchema);
+UserSchema.methods.isValidPassword = async function (password: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(password, this.password);
+  } catch (error) {
+    throw error;
+  }
+};
+export default model<User & Document>('user', UserSchema);

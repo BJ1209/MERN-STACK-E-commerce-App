@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import User from '../model/user.model';
 import createError from 'http-errors';
-import { createToken } from '../utils/jwt';
+import { createCookie } from '../utils/jwt';
 
 export const newUser = async (req: Request, res: Response, next: NextFunction) => {
   const { name, email, password } = req.body;
@@ -19,11 +19,26 @@ export const newUser = async (req: Request, res: Response, next: NextFunction) =
 
   const user = await newUser.save();
 
-  const accessToken = await createToken(user.id);
+  createCookie(user, 200, res);
+};
 
-  res.status(201).json({
-    success: true,
-    message: 'User registered successfully',
-    accessToken,
-  });
+export const loginHandler = async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new createError.BadRequest('Invalid Email/Password');
+  }
+
+  // select({password : 1}) means to fetch password parameter also along all the user data
+  const user = await User.findOne({ email }).select({ password: 1 });
+
+  if (!user) {
+    throw new createError.Unauthorized(`Invalid email/password`);
+  }
+
+  const isPasswordCorrect = await user.isValidPassword(password);
+
+  if (!isPasswordCorrect) throw new createError.Unauthorized('Invalid Email/Password');
+
+  createCookie(user, 200, res);
 };
