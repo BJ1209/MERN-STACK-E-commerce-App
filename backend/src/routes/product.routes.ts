@@ -13,12 +13,13 @@ const router: Router = Router();
 
 router.get('/', AsyncErrorHandler(getAllProducts));
 
-router.post('/new', AsyncErrorHandler(checkAuth), AsyncErrorHandler(createNewProduct));
+router.post('/new', AsyncErrorHandler(createNewProduct));
 
-router.get('/:productId', AsyncErrorHandler(getProductById));
-
-router.put('/:productId', AsyncErrorHandler(updateProductById));
-
-router.delete('/:productId', AsyncErrorHandler(deleteProductById));
+// Best practices
+router
+  .route('/:productId')
+  .get(AsyncErrorHandler(getProductById))
+  .put(AsyncErrorHandler(updateProductById))
+  .delete(AsyncErrorHandler(deleteProductById));
 
 export default router;

@@ -42,3 +42,10 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
 
   createCookie(user, 200, res);
 };
+
+export const logoutHandler = async (req: Request, res: Response, next: NextFunction) => {
+  res
+    .status(200)
+    .cookie('accessToken', null, { expires: new Date(Date.now()), httpOnly: true })
+    .json({ success: true, message: 'logged out successfully' });
+};
