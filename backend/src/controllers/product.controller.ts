@@ -1,8 +1,9 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
+import { newRequest } from '../interfaces';
 import Product from '../model/product.model';
 import pagination from '../utils/pagination';
 
-export const getAllProducts = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllProducts = async (req: newRequest, res: Response, next: NextFunction) => {
   const { q, page, category, limit, plte, pgte } = req.query;
   const resPerPage = 4;
 
@@ -88,7 +89,7 @@ export const getAllProducts = async (req: Request, res: Response, next: NextFunc
 
   res.status(200).json(responseObject);
 };
-export const createNewProduct = async (req: Request, res: Response, next: NextFunction) => {
+export const createNewProduct = async (req: newRequest, res: Response, next: NextFunction) => {
   const { name, price, description, category, seller, stock } = req.body;
 
   const newProduct = new Product({
@@ -103,7 +104,7 @@ export const createNewProduct = async (req: Request, res: Response, next: NextFu
   await newProduct.save();
   res.status(201).json({ success: true, message: 'Product created' });
 };
-export const getProductById = async (req: Request, res: Response, next: NextFunction) => {
+export const getProductById = async (req: newRequest, res: Response, next: NextFunction) => {
   const { productId } = req.params;
 
   const productById = await Product.findById(productId).select({ __v: 0 });
@@ -120,7 +121,7 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
     product: productById,
   });
 };
-export const updateProductById = async (req: Request, res: Response, next: NextFunction) => {
+export const updateProductById = async (req: newRequest, res: Response, next: NextFunction) => {
   const { productId } = req.params;
 
   const productById = await Product.findById(productId).select({ __v: 0 });
@@ -139,7 +140,7 @@ export const updateProductById = async (req: Request, res: Response, next: NextF
     request: { type: 'GET', Url: `http://localhost:4000/api/v1/products/${productId}` },
   });
 };
-export const deleteProductById = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteProductById = async (req: newRequest, res: Response, next: NextFunction) => {
   const { productId } = req.params;
 
   const productById = await Product.findById(productId).select({ __v: 0 });

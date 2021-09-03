@@ -10,6 +10,7 @@ export const newUser = async (req: Request, res: Response, next: NextFunction) =
     throw new createError.BadRequest();
   }
 
+  // Checking if the user exists
   const oldUser = await User.findOne({ email });
   if (oldUser) {
     throw new createError.Conflict(`${email} is already been registered!`);
@@ -33,7 +34,7 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
   const user = await User.findOne({ email }).select({ password: 1 });
 
   if (!user) {
-    throw new createError.Unauthorized(`Invalid email/password`);
+    throw new createError.NotFound(`User not registered`);
   }
 
   const isPasswordCorrect = await user.isValidPassword(password);

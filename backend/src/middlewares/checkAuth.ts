@@ -1,11 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import createError from 'http-errors';
-import userModel, { User } from '../model/user.model';
+import userModel from '../model/user.model';
 import { verifyToken } from '../utils/jwt';
-import { Document } from 'mongoose';
-interface newRequest extends Request {
-  user?: (User & Document<any, any, any>) | null;
-}
+import { newRequest } from '../interfaces';
 
 export default async (req: newRequest, res: Response, next: NextFunction) => {
   const { accessToken } = req.cookies;
@@ -17,7 +14,13 @@ export default async (req: newRequest, res: Response, next: NextFunction) => {
   const decoded = verifyToken(accessToken);
 
   // @ts-ignore
-  req.user = await userModel.findById(decoded.aud);
+  const user = await userModel.findById(decoded.aud);
+
+  if (!user) {
+    next(new createError.Unauthorized('Please login again with valid email/password'));
+  }
+
+  req.user = user;
 
   next();
 };

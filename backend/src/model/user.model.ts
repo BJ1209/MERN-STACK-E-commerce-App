@@ -3,7 +3,7 @@ import validator from 'validator';
 import bcrypt from 'bcrypt';
 require('dotenv/config');
 
-export interface User {
+export interface IUser {
   name: string;
   email: string;
   password: string;
@@ -15,7 +15,7 @@ export interface User {
   isValidPassword(password: string): boolean;
 }
 
-const UserSchema = new Schema<User>({
+const UserSchema = new Schema<IUser>({
   name: {
     type: String,
     required: [true, 'Please enter your name'],
@@ -50,7 +50,7 @@ const UserSchema = new Schema<User>({
   resetPasswordExpire: Date,
 });
 
-UserSchema.pre<User>('save', async function (next) {
+UserSchema.pre<IUser>('save', async function (next) {
   try {
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
     const hashedPassword = await bcrypt.hash(this.password, salt);
@@ -68,4 +68,4 @@ UserSchema.methods.isValidPassword = async function (password: string): Promise<
     throw error;
   }
 };
-export default model<User & Document>('user', UserSchema);
+export default model<IUser & Document>('user', UserSchema);

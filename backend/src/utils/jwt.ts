@@ -2,7 +2,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import createError from 'http-errors';
 import { Document } from 'mongoose';
 import { Response } from 'express';
-import { User } from '../model/user.model';
+import { IUser } from '../model/user.model';
 require('dotenv/config');
 
 export const createToken = (id: string) => {
@@ -26,7 +26,7 @@ export const verifyToken = (token: string): string | JwtPayload => {
 };
 
 export const createCookie = async (
-  user: User & Document<any, any, any>,
+  user: IUser & Document<any, any, any>,
   statusCode: number,
   res: Response
 ) => {
