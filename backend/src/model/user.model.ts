@@ -1,18 +1,21 @@
 import { Schema, model, Document } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import { generateResetToken } from '../utils/generateKeys';
 require('dotenv/config');
 
-export interface IUser {
+export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
   avatar: { url: string }[];
   role: string;
   createdAt: Date;
-  resetPasswordToken: string;
-  resetPasswordExpire: Date;
+  resetPasswordToken: string | undefined;
+  resetPasswordExpire: number | undefined;
   isValidPassword(password: string): boolean;
+  getResetPasswordToken(): string;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -52,7 +55,10 @@ const UserSchema = new Schema<IUser>({
 
 UserSchema.pre<IUser>('save', async function (next) {
   try {
-    const salt = await bcrypt.genSalt(Number(process.env.SALT));
+    if (!this.isModified('password')) {
+      next();
+    }
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(this.password, salt);
     this.password = hashedPassword;
     next();
@@ -68,4 +74,15 @@ UserSchema.methods.isValidPassword = async function (password: string): Promise<
     throw error;
   }
 };
+
+UserSchema.methods.getResetPasswordToken = function (): string {
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  this.resetPasswordToken = generateResetToken(resetToken);
+
+  this.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+
+  return resetToken;
+};
+
 export default model<IUser & Document>('user', UserSchema);

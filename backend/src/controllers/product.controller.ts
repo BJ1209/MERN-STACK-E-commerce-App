@@ -91,6 +91,7 @@ export const getAllProducts = async (req: newRequest, res: Response, next: NextF
 };
 export const createNewProduct = async (req: newRequest, res: Response, next: NextFunction) => {
   const { name, price, description, category, seller, stock } = req.body;
+  const user = req.user?.id;
 
   const newProduct = new Product({
     name,
@@ -99,6 +100,7 @@ export const createNewProduct = async (req: newRequest, res: Response, next: Nex
     category,
     seller,
     stock,
+    user,
   });
 
   await newProduct.save();

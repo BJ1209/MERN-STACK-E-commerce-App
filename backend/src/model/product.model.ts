@@ -1,4 +1,4 @@
-import { Document, model, Schema } from 'mongoose';
+import { Document, model, Schema, SchemaTypes } from 'mongoose';
 
 interface ProductSchema {
   name: string;
@@ -98,6 +98,11 @@ const productSchema = new Schema({
       },
     },
   ],
+  user: {
+    type: SchemaTypes.ObjectId,
+    required: true,
+    ref: 'user',
+  },
   createdAt: {
     type: Date,
     default: Date.now(),
