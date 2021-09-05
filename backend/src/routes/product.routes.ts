@@ -25,7 +25,15 @@ router.post(
 router
   .route('/:productId')
   .get(AsyncErrorHandler(getProductById))
-  .put(AsyncErrorHandler(updateProductById))
-  .delete(AsyncErrorHandler(deleteProductById));
+  .put(
+    AsyncErrorHandler(checkAuth),
+    AsyncErrorHandler(authorizeRoles('admin')),
+    AsyncErrorHandler(updateProductById)
+  )
+  .delete(
+    AsyncErrorHandler(checkAuth),
+    AsyncErrorHandler(authorizeRoles('admin')),
+    AsyncErrorHandler(deleteProductById)
+  );
 
 export default router;

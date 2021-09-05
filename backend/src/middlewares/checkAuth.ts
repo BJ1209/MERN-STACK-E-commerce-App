@@ -8,7 +8,7 @@ export default async (req: newRequest, res: Response, next: NextFunction) => {
   const { accessToken } = req.cookies;
 
   if (!accessToken) {
-    next(new createError.Unauthorized('Please login'));
+    return next(new createError.Unauthorized('Please login'));
   }
 
   const decoded = verifyToken(accessToken);

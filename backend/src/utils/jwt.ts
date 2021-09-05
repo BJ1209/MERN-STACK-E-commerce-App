@@ -15,7 +15,7 @@ export const createToken = (id: string) => {
         audience: id,
       };
     jwt.sign(payload, secret, options, (err, token) => {
-      if (err) return reject(err);
+      if (err) return reject(new createError.InternalServerError());
       resolve(token);
     });
   });

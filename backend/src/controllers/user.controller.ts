@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import User from '../model/user.model';
 import createError from 'http-errors';
 import { createCookie } from '../utils/jwt';
 import sendEmail from '../utils/sendEmail';
-import crypto from 'crypto';
 import { generateResetToken } from '../utils/generateKeys';
+import { newRequest } from '../interfaces';
 
-export const newUser = async (req: Request, res: Response, next: NextFunction) => {
+export const newUser = async (req: newRequest, res: Response, next: NextFunction) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -26,7 +26,7 @@ export const newUser = async (req: Request, res: Response, next: NextFunction) =
   createCookie(user, 200, res);
 };
 
-export const loginHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const loginHandler = async (req: newRequest, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -47,14 +47,14 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
   createCookie(user, 200, res);
 };
 
-export const logoutHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const logoutHandler = async (req: newRequest, res: Response, next: NextFunction) => {
   res
     .status(200)
     .cookie('accessToken', null, { expires: new Date(Date.now()), httpOnly: true })
     .json({ success: true, message: 'logged out successfully' });
 };
 
-export const forgotPasswordHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const forgotPasswordHandler = async (req: newRequest, res: Response, next: NextFunction) => {
   const { email } = req.body;
 
   // Check is user exist with this email
@@ -85,7 +85,11 @@ export const forgotPasswordHandler = async (req: Request, res: Response, next: N
   }
 };
 
-export const verifyResetTokenHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyResetTokenHandler = async (
+  req: newRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const { resetToken } = req.params;
   const { password, confirmPassword } = req.body;
 
@@ -114,4 +118,116 @@ export const verifyResetTokenHandler = async (req: Request, res: Response, next:
   await user.save();
 
   createCookie(user, 200, res);
+};
+
+export const getUserProfile = async (req: newRequest, res: Response, next: NextFunction) => {
+  const id = req.user?.id;
+
+  const user = await User.findById(id);
+
+  res.status(200).json({ success: true, message: 'User Details', user });
+};
+
+export const updatePasswordHandler = async (req: newRequest, res: Response, next: NextFunction) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+  const userId = req.user?.id;
+
+  const user = await User.findById(userId).select({ password: 1 });
+
+  const isMatched = await user?.isValidPassword(oldPassword);
+
+  if (!isMatched) {
+    throw new createError.BadRequest('Invalid Password');
+  }
+
+  if (!newPassword || !confirmPassword) {
+    throw new createError.BadRequest('Invalid Passwords');
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new createError.BadRequest('Passwords does not match');
+  }
+
+  user!.password = newPassword;
+  await user!.save();
+
+  createCookie(user!, 200, res);
+};
+
+// ADMIN ROUTES------------------------------------------------
+export const getAllUsers = async (req: newRequest, res: Response, next: NextFunction) => {
+  const users = await User.find().select({ __v: 0 });
+
+  if (users.length < 1) {
+    return res.status(200).json({ success: false, message: 'No Users found' });
+  }
+
+  const responseObject = {
+    success: true,
+    message: 'All users',
+    count: users.length,
+    users: users.map(({ id, name, avatar, createdAt, email, role }) => {
+      return {
+        id,
+        name,
+        email,
+        role,
+        createdAt,
+        avatar,
+        request: {
+          type: 'GET',
+          message: 'Get single user detail',
+          url: `http://localhost:4000/api/v1/users/admin/${id}`,
+        },
+      };
+    }),
+  };
+
+  res.status(200).json(responseObject);
+};
+
+export const getUserById = async (req: newRequest, res: Response, next: NextFunction) => {
+  const { userId } = req.params;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new createError.NotFound('User not found');
+  }
+
+  res.status(200).json({ success: true, message: 'User details', user });
+};
+
+export const updateUserById = async (req: newRequest, res: Response, next: NextFunction) => {
+  const { userId } = req.params;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new createError.NotFound('User not found');
+  }
+
+  await User.updateOne({ _id: userId }, req.body);
+
+  res.status(200).json({
+    success: true,
+    message: 'User Updated',
+    request: { type: 'GET', Url: `http://localhost:4000/api/v1/users/admin/${userId}` },
+  });
+};
+export const deleteUserById = async (req: newRequest, res: Response, next: NextFunction) => {
+  const { userId } = req.params;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new createError.NotFound('User not found');
+  }
+
+  await User.findByIdAndDelete(userId);
+
+  res.status(200).json({
+    success: true,
+    message: 'user deleted',
+  });
 };
