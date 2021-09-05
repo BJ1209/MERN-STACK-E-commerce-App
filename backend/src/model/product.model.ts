@@ -1,4 +1,4 @@
-import { Document, model, Schema, SchemaTypes } from 'mongoose';
+import { Document, model, ObjectId, Schema, SchemaTypes } from 'mongoose';
 
 interface ProductSchema {
   name: string;
@@ -10,6 +10,7 @@ interface ProductSchema {
   seller: string;
   stock: number;
   numOfReviews: number;
+  user: ObjectId;
   reviews: { name: string; comment: string; rating: number }[];
   createdAt: Date;
 }
