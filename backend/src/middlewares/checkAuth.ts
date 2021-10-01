@@ -11,10 +11,10 @@ export default async (req: newRequest, res: Response, next: NextFunction) => {
     return next(new createError.Unauthorized('Please login'));
   }
 
-  const decoded = verifyToken(accessToken);
+  const data = verifyToken(accessToken);
 
   // @ts-ignore
-  const user = await userModel.findById(decoded.aud);
+  const user = await userModel.findById(data.aud);
 
   if (!user) {
     next(new createError.Unauthorized('Please login again with valid email/password'));

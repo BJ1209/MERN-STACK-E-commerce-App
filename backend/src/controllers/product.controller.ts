@@ -2,6 +2,7 @@ import { NextFunction, Response } from 'express';
 import { newRequest } from '../interfaces';
 import Product from '../model/product.model';
 import pagination from '../utils/pagination';
+import createError from 'http-errors';
 
 export const getAllProducts = async (req: newRequest, res: Response, next: NextFunction) => {
   const { q, page, category, limit, plte, pgte } = req.query;
@@ -91,7 +92,7 @@ export const getAllProducts = async (req: newRequest, res: Response, next: NextF
 };
 export const createNewProduct = async (req: newRequest, res: Response, next: NextFunction) => {
   const { name, price, description, category, seller, stock } = req.body;
-  const user = req.user?.id;
+  const userId = req.user?.id;
 
   const newProduct = new Product({
     name,
@@ -100,7 +101,7 @@ export const createNewProduct = async (req: newRequest, res: Response, next: Nex
     category,
     seller,
     stock,
-    user,
+    userId,
   });
 
   await newProduct.save();
@@ -112,9 +113,7 @@ export const getProductById = async (req: newRequest, res: Response, next: NextF
   const productById = await Product.findById(productId).select({ __v: 0 });
 
   if (!productById) {
-    return res
-      .status(404)
-      .json({ success: true, message: "Coundn't find the product by Particular Id" });
+    throw new createError.NotFound("Coundn't find the product by Particular Id");
   }
 
   res.status(200).json({
@@ -129,9 +128,7 @@ export const updateProductById = async (req: newRequest, res: Response, next: Ne
   const productById = await Product.findById(productId).select({ __v: 0 });
 
   if (!productById) {
-    return res
-      .status(404)
-      .json({ success: true, message: "Coundn't find the product by Particular Id" });
+    throw new createError.NotFound("Coundn't find the product by Particular Id");
   }
 
   await Product.updateOne({ _id: productId }, req.body);
@@ -148,9 +145,7 @@ export const deleteProductById = async (req: newRequest, res: Response, next: Ne
   const productById = await Product.findById(productId).select({ __v: 0 });
 
   if (!productById) {
-    return res
-      .status(404)
-      .json({ success: true, message: "Coundn't find the product by Particular Id" });
+    throw new createError.NotFound("Coundn't find the product by Particular Id");
   }
 
   await Product.findByIdAndDelete(productId);

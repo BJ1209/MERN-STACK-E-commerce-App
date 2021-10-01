@@ -2,9 +2,10 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 import connect from './db/connect';
 import cors from 'cors';
 import productRoutes from './routes/product.routes';
+import userRoutes from './routes/user.routes';
+import orderRoutes from './routes/order.routes';
 import morgan from 'morgan';
 import { responseError } from './interfaces';
-import userRoutes from './routes/user.routes';
 import cookieParser from 'cookie-parser';
 require('dotenv/config');
 
@@ -20,6 +21,7 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // catch all routes
 app.use((req: Request, res: Response, next: NextFunction) => {

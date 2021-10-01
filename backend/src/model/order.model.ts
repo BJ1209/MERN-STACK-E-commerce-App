@@ -21,7 +21,7 @@ interface Order {
 
 interface IOrder extends Document {
   shippingInfo: IShippingInfo;
-  user: ObjectId;
+  userId: ObjectId;
   orderItems: Order[];
   paymentInfo: IPaymentInfo;
   itemsPrice: number;
@@ -57,7 +57,7 @@ const OrderSchema = new Schema<IOrder>({
       required: true,
     },
   },
-  user: {
+  userId: {
     type: SchemaTypes.ObjectId,
     required: true,
     ref: 'user',
