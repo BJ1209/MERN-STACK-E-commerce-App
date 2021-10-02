@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import {
+  addReview,
   createNewProduct,
   deleteProductById,
+  deleteReview,
   getAllProducts,
+  getAllReviews,
   getProductById,
   updateProductById,
 } from '../controllers/product.controller';
@@ -36,4 +39,8 @@ router
     AsyncErrorHandler(deleteProductById)
   );
 
+// Review Routes
+router.get('/reviews', AsyncErrorHandler(getAllReviews));
+router.put('/reviews/new', AsyncErrorHandler(checkAuth), AsyncErrorHandler(addReview));
+router.delete('/reviews', AsyncErrorHandler(checkAuth), AsyncErrorHandler(deleteReview));
 export default router;

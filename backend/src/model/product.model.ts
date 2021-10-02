@@ -1,5 +1,6 @@
 import { Document, model, ObjectId, Schema, SchemaTypes } from 'mongoose';
 
+type Review = { userId: ObjectId; name: string; comment: string; rating: number };
 interface ProductSchema {
   name: string;
   price: number;
@@ -10,8 +11,8 @@ interface ProductSchema {
   seller: string;
   stock: number;
   numOfReviews: number;
-  user: ObjectId;
-  reviews: { name: string; comment: string; rating: number }[];
+  userId: ObjectId;
+  reviews: Review[];
   createdAt: Date;
 }
 
@@ -85,6 +86,11 @@ const productSchema = new Schema({
   },
   reviews: [
     {
+      userId: {
+        type: SchemaTypes.ObjectId,
+        required: true,
+        ref: 'user',
+      },
       name: {
         type: String,
         required: true,
@@ -99,7 +105,7 @@ const productSchema = new Schema({
       },
     },
   ],
-  user: {
+  userId: {
     type: SchemaTypes.ObjectId,
     required: true,
     ref: 'user',

@@ -155,3 +155,78 @@ export const deleteProductById = async (req: newRequest, res: Response, next: Ne
     message: 'Product deleted',
   });
 };
+
+// Review routes
+export const getAllReviews = async (req: newRequest, res: Response, next: NextFunction) => {
+  const product = await Product.findById(req.query.productId);
+
+  res.status(200).json({
+    success: true,
+    count: product?.reviews.length,
+    reviews: product?.reviews,
+  });
+};
+export const addReview = async (req: newRequest, res: Response, next: NextFunction) => {
+  const { rating, comment, productId } = req.body;
+
+  const review = {
+    userId: req.user!.id,
+    name: req.user!.name,
+    rating: Number(rating),
+    comment,
+  };
+
+  const product = await Product.findById(productId);
+
+  // Check if the product is reviewed by the user
+  const isReviewed = product?.reviews.find((review) => review.userId === req.user?.id);
+
+  // if true update the review to the new one
+  // else push the new review to the reviews array
+  if (isReviewed) {
+    product!.reviews.forEach((review) => {
+      if (review.userId === req.user?.id) {
+        review.comment = comment;
+        review.rating = rating;
+      }
+    });
+  } else {
+    product!.reviews.push(review);
+    product!.numOfReviews = product!.reviews.length;
+  }
+
+  product!.ratings =
+    product!.reviews.reduce((acc, item) => item.rating + acc, 0) / product!.reviews.length;
+
+  await product!.save({ validateBeforeSave: false });
+
+  res.status(201).json({ success: true, message: 'Review Added' });
+};
+export const deleteReview = async (req: newRequest, res: Response, next: NextFunction) => {
+  const { productId, reviewId } = req.query;
+
+  const product = await Product.findById(productId);
+
+  // @ts-ignore
+  const reviews = product?.reviews.filter((review) => review._id !== reviewId);
+
+  const numOfReviews = reviews!.length;
+
+  const ratings = reviews!.reduce((acc, item) => acc + item.rating, 0);
+
+  await Product.findByIdAndUpdate(
+    productId,
+    {
+      reviews,
+      numOfReviews,
+      ratings,
+    },
+    {
+      new: true,
+      runValidators: true,
+      useFindAndModify: false,
+    }
+  );
+
+  res.status(200).json({ success: true, message: 'Review Deleted' });
+};
